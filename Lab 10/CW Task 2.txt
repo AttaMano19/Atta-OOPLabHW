@@ -1,0 +1,110 @@
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+
+using namespace std;
+
+// Define structure for employee data
+struct Employee {
+    int id;
+    string name;
+    string designation;
+    int yearsOfService;
+};
+
+// Function to split a line into an Employee object
+Employee parseLine(const string& line) {
+    Employee emp;
+    stringstream ss(line);
+    string temp;
+    
+    getline(ss, temp, ',');
+    emp.id = stoi(temp);
+    
+    getline(ss, emp.name, ',');
+    getline(ss, emp.designation, ',');
+    
+    getline(ss, temp, ',');
+    emp.yearsOfService = stoi(temp);
+    
+    return emp;
+}
+
+// Function to convert Employee object to string
+string toLine(const Employee& emp) {
+    return to_string(emp.id) + "," + emp.name + "," + emp.designation + "," + to_string(emp.yearsOfService);
+}
+
+// Write dummy data to file
+void writeDummyData(const string& filename) {
+    ofstream outFile(filename);
+    outFile << "1,John Doe,Manager,3\n";
+    outFile << "2,Jane Smith,Developer,1\n";
+    outFile << "3,Alice Brown,Manager,1\n";
+    outFile << "4,Bob White,Designer,5\n";
+    outFile << "5,Eve Black,Manager,2\n";
+    outFile.close();
+}
+
+// Read data and return employees that match the query
+vector<Employee> queryManagerWith2Years(const string& filename) {
+    vector<Employee> result;
+    ifstream inFile(filename);
+    string line;
+    
+    while (getline(inFile, line)) {
+        Employee emp = parseLine(line);
+        if (emp.designation == "Manager" && emp.yearsOfService >= 2) {
+            result.push_back(emp);
+        }
+    }
+    inFile.close();
+    return result;
+}
+
+// Overwrite file with selected data
+void overwriteWithSelected(const string& filename, const vector<Employee>& data) {
+    ofstream outFile(filename);
+    for (const auto& emp : data) {
+        outFile << toLine(emp) << "\n";
+    }
+    outFile.close();
+}
+
+// Write updated data with incremented ID and years
+void writeIncrementedData(const string& filename, const vector<Employee>& original) {
+    ofstream outFile(filename);
+    int newId = 1;
+    for (auto emp : original) {
+        emp.id = newId++;
+        emp.yearsOfService += 1;
+        outFile << toLine(emp) << "\n";
+    }
+    outFile.close();
+}
+
+int main() {
+    string filename = "data.txt";
+
+    // Step 1: Write dummy data
+    writeDummyData(filename);
+    cout << "Dummy data written to file.\n";
+
+    // Step 2: Query for managers with at least 2 years
+    vector<Employee> selected = queryManagerWith2Years(filename);
+    cout << "\nQuery Results:\n";
+    for (const auto& emp : selected) {
+        cout << toLine(emp) << endl;
+    }
+
+    // Step 3: Overwrite file with only selected records
+    overwriteWithSelected(filename, selected);
+    cout << "\nDeleted all others. File now contains only queried data.\n";
+
+    // Step 4: Write new file with incremented IDs and years
+    writeIncrementedData(filename, selected);
+    cout << "\nUpdated data written with incremented IDs and years of service.\n";
+
+    return 0;
+}

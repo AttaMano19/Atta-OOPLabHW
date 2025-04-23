@@ -1,0 +1,111 @@
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <unordered_map>
+
+using namespace std;
+
+// Structures for each table
+struct User {
+    string user_id, first_name, last_name, address, email;
+};
+
+struct Product {
+    string product_id, product_name, description;
+    int price;
+};
+
+struct Order {
+    string order_id, user_id, product_id;
+    int total_paid;
+};
+
+// Utility: Split string by comma
+vector<string> split(const string& line, char delimiter = ',') {
+    vector<string> parts;
+    stringstream ss(line);
+    string token;
+    while (getline(ss, token, delimiter)) {
+        parts.push_back(token);
+    }
+    return parts;
+}
+
+// Dummy data writing
+void writeDummyData() {
+    // Users
+    ofstream u("users.txt");
+    u << "u1,Linus,Torvalds,Finland,linus@email.com\n";
+    u << "u2,Jane,Doe,USA,jane@email.com\n";
+    u.close();
+
+    // Products
+    ofstream p("products.txt");
+    p << "p1,Laptop,High-end Linux Laptop,1200\n";
+    p << "p2,Keyboard,Mechanical keyboard,150\n";
+    p << "p3,Mouse,Ergonomic mouse,80\n";
+    p.close();
+
+    // Orders
+    ofstream o("orders.txt");
+    o << "o1,u1,p1,1200\n";
+    o << "o2,u2,p2,150\n";
+    o << "o3,u1,p3,80\n";
+    o.close();
+}
+
+// Query to fetch products ordered by user "Linus"
+void queryProductsByUser(const string& targetName) {
+    unordered_map<string, string> userMap;        // user_id -> first_name
+    unordered_map<string, string> productMap;     // product_id -> product_name
+    vector<Order> orders;
+
+    // Load users
+    ifstream uFile("users.txt");
+    string line;
+    while (getline(uFile, line)) {
+        auto parts = split(line);
+        if (parts.size() >= 2) {
+            userMap[parts[0]] = parts[1]; // user_id -> first_name
+        }
+    }
+
+    // Load products
+    ifstream pFile("products.txt");
+    while (getline(pFile, line)) {
+        auto parts = split(line);
+        if (parts.size() >= 2) {
+            productMap[parts[0]] = parts[1]; // product_id -> product_name
+        }
+    }
+
+    // Load orders
+    ifstream oFile("orders.txt");
+    while (getline(oFile, line)) {
+        auto parts = split(line);
+        if (parts.size() >= 4) {
+            orders.push_back({parts[0], parts[1], parts[2], stoi(parts[3])});
+        }
+    }
+
+    // Get user_id for "Linus"
+    vector<string> linusProducts;
+    for (const auto& order : orders) {
+        if (userMap[order.user_id] == targetName) {
+            linusProducts.push_back(productMap[order.product_id]);
+        }
+    }
+
+    // Output result
+    cout << "\nProducts ordered by " << targetName << ":\n";
+    for (const auto& name : linusProducts) {
+        cout << "- " << name << endl;
+    }
+}
+
+int main() {
+    writeDummyData();  // Step 1: Add data
+    queryProductsByUser("Linus");  // Step 2: Run query
+    return 0;
+}
