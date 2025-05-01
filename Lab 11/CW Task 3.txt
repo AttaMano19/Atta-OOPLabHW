@@ -1,0 +1,82 @@
+#include <iostream>
+#include <stdexcept>
+
+// Custom exception class
+class ArrayIndexOutOfBounds : public std::exception {
+public:
+    const char* what() const noexcept override {
+        return "Array index out of bounds.";
+    }
+};
+
+// Template SafeArray class
+template <typename T>
+class SafeArray {
+private:
+    T* arr;
+    size_t size;
+
+public:
+    // Constructor
+    SafeArray(size_t s) : size(s) {
+        if (s == 0) throw std::invalid_argument("Array size must be greater than 0.");
+        arr = new T[s];
+    }
+
+    // Destructor
+    ~SafeArray() {
+        delete[] arr;
+    }
+
+    // Disable copy constructor and assignment (for simplicity)
+    SafeArray(const SafeArray&) = delete;
+    SafeArray& operator=(const SafeArray&) = delete;
+
+    // Overload operator[] with bounds checking
+    T& operator[](int index) {
+        if (index < 0 || static_cast<size_t>(index) >= size)
+            throw ArrayIndexOutOfBounds();
+        return arr[index];
+    }
+
+    const T& operator[](int index) const {
+        if (index < 0 || static_cast<size_t>(index) >= size)
+            throw ArrayIndexOutOfBounds();
+        return arr[index];
+    }
+
+    // Get size of the array
+    size_t getSize() const {
+        return size;
+    }
+};
+
+// Main function to test SafeArray
+int main() {
+    try {
+        SafeArray<int> sa(5);
+
+        // Fill array
+        for (int i = 0; i < static_cast<int>(sa.getSize()); ++i) {
+            sa[i] = i * 10;
+        }
+
+        // Display elements
+        std::cout << "SafeArray contents:\n";
+        for (int i = 0; i < static_cast<int>(sa.getSize()); ++i) {
+            std::cout << sa[i] << " ";
+        }
+        std::cout << "\n";
+
+        // Try out-of-bounds access
+        std::cout << "Attempting out-of-bounds access:\n";
+        std::cout << sa[10] << std::endl;  // This will throw
+
+    } catch (const ArrayIndexOutOfBounds& e) {
+        std::cerr << "Caught ArrayIndexOutOfBounds: " << e.what() << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << "Caught std::exception: " << e.what() << std::endl;
+    }
+
+    return 0;
+}

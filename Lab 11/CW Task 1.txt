@@ -1,0 +1,72 @@
+#include <iostream>
+#include <any>
+#include <stdexcept>
+#include <typeinfo>
+#include <string>
+
+// Custom exception class for type mismatch
+class BadTypeException : public std::exception {
+public:
+    const char* what() const noexcept override {
+        return "Type mismatch: requested type does not match stored type.";
+    }
+};
+
+// Type-safe heterogeneous container
+class TypeSafeContainer {
+private:
+    std::any value;
+
+public:
+    TypeSafeContainer() = default;
+
+    // Store a value of any type
+    template<typename T>
+    void store(const T& val) {
+        value = val;
+    }
+
+    // Retrieve a value of specified type
+    template<typename T>
+    T get() const {
+        if (!value.has_value()) {
+            throw std::runtime_error("No value stored.");
+        }
+
+        if (value.type() != typeid(T)) {
+            throw BadTypeException();
+        }
+
+        return std::any_cast<T>(value);
+    }
+
+    // Optional: check if value is of specific type
+    template<typename T>
+    bool is() const {
+        return value.type() == typeid(T);
+    }
+};
+
+int main() {
+    TypeSafeContainer container;
+
+    // Store a string
+    container.store<std::string>("Hello, TypeSafe!");
+
+    try {
+        // Correct retrieval
+        std::string s = container.get<std::string>();
+        std::cout << "Retrieved string: " << s << std::endl;
+
+        // Incorrect retrieval, throws BadTypeException
+        int x = container.get<int>();
+        std::cout << "Retrieved int: " << x << std::endl;
+
+    } catch (const BadTypeException& e) {
+        std::cerr << "Caught BadTypeException: " << e.what() << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << "Caught std::exception: " << e.what() << std::endl;
+    }
+
+    return 0;
+}

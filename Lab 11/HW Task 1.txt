@@ -1,0 +1,47 @@
+#include <iostream>
+
+// Base templated class
+template <typename T>
+class Base {
+protected:
+    T a, b;
+
+public:
+    Base(T x, T y) : a(x), b(y) {}
+
+    void multiplyBase() const {
+        std::cout << "Base class multiplication: " << a << " * " << b << " = " << a * b << std::endl;
+    }
+};
+
+// Derived templated class (inherits from Base)
+template <typename T>
+class Derived : public Base<T> {
+private:
+    T c, d;
+
+public:
+    Derived(T x, T y, T z, T w) : Base<T>(x, y), c(z), d(w) {}
+
+    void multiplyDerived() const {
+        std::cout << "Derived class multiplication: " << c << " * " << d << " = " << c * d << std::endl;
+    }
+
+    void multiplyAll() const {
+        T total = this->a * this->b * c * d;
+        std::cout << "Multiplication of all variables: " << total << std::endl;
+    }
+};
+
+// Main function
+int main() {
+    // Create a Derived object with int
+    Derived<int> obj(2, 3, 4, 5);
+
+    // Call multiplication methods
+    obj.multiplyBase();       // From Base class
+    obj.multiplyDerived();    // From Derived class
+    obj.multiplyAll();        // All variables together
+
+    return 0;
+}

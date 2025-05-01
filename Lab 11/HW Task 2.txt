@@ -1,0 +1,90 @@
+#include <iostream>
+#include <vector>
+#include <stdexcept>
+
+// Custom exception for stack underflow
+class StackUnderflowException : public std::exception {
+public:
+    const char* what() const noexcept override {
+        return "Stack underflow: attempted to access an element from an empty stack.";
+    }
+};
+
+// Templated Stack class
+template <typename T>
+class Stack {
+private:
+    std::vector<T> data;
+
+public:
+    // Push an element onto the stack
+    void push(const T& value) {
+        data.push_back(value);
+    }
+
+    // Remove the top element
+    void pop() {
+        if (data.empty()) {
+            throw StackUnderflowException();
+        }
+        data.pop_back();
+    }
+
+    // Access the top element
+    T& top() {
+        if (data.empty()) {
+            throw StackUnderflowException();
+        }
+        return data.back();
+    }
+
+    const T& top() const {
+        if (data.empty()) {
+            throw StackUnderflowException();
+        }
+        return data.back();
+    }
+
+    // Check if the stack is empty
+    bool isEmpty() const {
+        return data.empty();
+    }
+
+    // Get the current size of the stack
+    size_t size() const {
+        return data.size();
+    }
+};
+
+// Main function to demonstrate Stack usage
+int main() {
+    Stack<int> s;
+
+    try {
+        // Push elements
+        s.push(10);
+        s.push(20);
+        s.push(30);
+
+        // Access and print top element
+        std::cout << "Top element: " << s.top() << std::endl;
+
+        // Pop elements
+        s.pop();
+        std::cout << "Top after one pop: " << s.top() << std::endl;
+
+        s.pop();
+        s.pop();
+
+        // Try popping from empty stack
+        std::cout << "Attempting to pop from empty stack:\n";
+        s.pop();  // This will throw
+
+    } catch (const StackUnderflowException& e) {
+        std::cerr << "Caught StackUnderflowException: " << e.what() << std::endl;
+    } catch (const std::exception& e) {
+        std::cerr << "Caught std::exception: " << e.what() << std::endl;
+    }
+
+    return 0;
+}
